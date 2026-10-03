@@ -1,0 +1,18 @@
+{
+  "name": "lab-management-system-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Complete MERN Lab Management System MVP",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "seed": "npm --prefix server run seed",
+    "db:view": "node server/scripts/db-cli.js",
+    "db:clear": "node server/scripts/clear-db.js",
+    "test:server": "npm --prefix server test",
+    "start": "node server/src/server.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

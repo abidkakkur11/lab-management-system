@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+*/node_modules/
+
+# Production build outputs
+dist/
+build/
+*/dist/
+
+# Environment files
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+*.log
+
+# Database storage
+server/data/
+server/uploads/avatars/*
+!server/uploads/avatars/.gitkeep
+server/uploads/attachments/*
+!server/uploads/attachments/.gitkeep
+
+# OS generated files
+.DS_Store
+Thumbs.db
