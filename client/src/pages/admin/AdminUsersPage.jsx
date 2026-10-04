@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, UserPlus, Shield, CheckCircle, XCircle, Edit, Save, Trash2, Lock, AlertTriangle } from 'lucide-react';
+import { Users, Search, UserPlus, Shield, CheckCircle, XCircle, Edit, Save, Trash2, Lock, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { adminService, departmentService } from '../../services/api';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Modal } from '../../components/common/Modal';
+import { StudentDetailsModal } from '../../components/common/StudentDetailsModal';
 
 export const AdminUsersPage = () => {
   const { user: currentUser } = useAuth();
@@ -34,6 +35,10 @@ export const AdminUsersPage = () => {
   // Edit User Modal
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+
+  // Password visibility & View details modal
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [selectedStudentToView, setSelectedStudentToView] = useState(null);
 
   const [actionLoading, setActionLoading] = useState(false);
   const [msg, setMsg] = useState('');
@@ -325,6 +330,15 @@ export const AdminUsersPage = () => {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStudentToView(u)}
+                          className="btn btn-secondary btn-sm"
+                          title="View full user details"
+                        >
+                          <Eye size={14} />
+                        </button>
+
                         {u.userType !== 'student' && (
                           <button
                             onClick={() => {
@@ -387,8 +401,12 @@ export const AdminUsersPage = () => {
       {/* Create User Modal */}
       <Modal
         isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setShowNewPassword(false);
+        }}
         title="Add Campus User Account"
+        closeOnBackdrop={false}
       >
         <form onSubmit={handleCreateUser}>
           <div className="form-group">
@@ -454,14 +472,37 @@ export const AdminUsersPage = () => {
 
           <div className="form-group">
             <label className="form-label">Initial Password *</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="Enter initial password (min. 6 characters)"
-              value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                className="form-input"
+                style={{ paddingRight: '40px' }}
+                placeholder="Enter initial password (min. 6 characters)"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '4px',
+                }}
+                title={showNewPassword ? 'Hide password' : 'Show password'}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
@@ -596,6 +637,12 @@ export const AdminUsersPage = () => {
           </div>
         </Modal>
       )}
+      {/* Full Student Profile Details Modal */}
+      <StudentDetailsModal
+        isOpen={Boolean(selectedStudentToView)}
+        onClose={() => setSelectedStudentToView(null)}
+        student={selectedStudentToView}
+      />
     </div>
   );
 };

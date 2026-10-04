@@ -130,7 +130,11 @@ exports.getStudentsActivity = async (req, res, next) => {
   try {
     const { department, search } = req.query;
 
-    const userQuery = { userType: 'student', isActive: true };
+    const userQuery = {
+      userType: 'student',
+      isActive: true,
+      approvalStatus: 'approved',
+    };
     if (department && department !== 'All') {
       userQuery.department = department;
     }
@@ -446,22 +450,13 @@ exports.rejectStudent = async (req, res, next) => {
       });
     }
 
-    student.approvalStatus = 'rejected';
-    student.rejectionReason = reason || 'Department faculty declined verification.';
-    await student.save();
-
-    await createNotification({
-      userId: student._id,
-      type: 'system',
-      title: 'Registration Verification Declined',
-      message: `Your registration was declined. Reason: ${student.rejectionReason}`,
-      priority: 'high',
-    });
+    // Completely delete the rejected student registration so it never appears in users list
+    await User.findByIdAndDelete(student._id);
 
     res.status(200).json({
       success: true,
-      message: 'Student registration rejected.',
-      data: student,
+      message: `Registration for ${student.userName} rejected and removed from campus records.`,
+      data: { _id: student._id },
     });
   } catch (error) {
     next(error);

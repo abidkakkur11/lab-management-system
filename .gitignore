@@ -27,3 +27,6 @@ server/uploads/attachments/*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Local viva & study guides (not for repo)
+PROJECT_OVERVIEW_AND_VIVA.md

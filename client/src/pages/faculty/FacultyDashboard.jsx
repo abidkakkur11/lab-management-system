@@ -12,16 +12,19 @@ import {
   Check,
   X,
   UserCheck,
+  Eye,
 } from 'lucide-react';
 import { facultyService } from '../../services/api';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { formatBookingDate } from '../../utils/dateUtils';
+import { StudentDetailsModal } from '../../components/common/StudentDetailsModal';
 
 export const FacultyDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [selectedStudentToView, setSelectedStudentToView] = useState(null);
 
   const fetchDashboard = async () => {
     try {
@@ -231,6 +234,14 @@ export const FacultyDashboard = () => {
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button
+                          type="button"
+                          onClick={() => setSelectedStudentToView(s)}
+                          className="btn btn-secondary btn-sm"
+                          title="View student profile details"
+                        >
+                          <Eye size={14} /> View
+                        </button>
+                        <button
                           onClick={() => handleRejectStudent(s._id)}
                           className="btn btn-secondary btn-sm"
                           disabled={actionLoading}
@@ -375,6 +386,12 @@ export const FacultyDashboard = () => {
           )}
         </div>
       </div>
+      {/* Student Details Modal */}
+      <StudentDetailsModal
+        isOpen={Boolean(selectedStudentToView)}
+        onClose={() => setSelectedStudentToView(null)}
+        student={selectedStudentToView}
+      />
     </div>
   );
 };

@@ -14,9 +14,9 @@ exports.getAnalytics = async (req, res, next) => {
     // Core Metrics
     const [totalUsers, totalStudents, totalFaculty, totalLabs, todayBookings, activeBookings, confirmedBookings, cancelledBookings] =
       await Promise.all([
-        User.countDocuments(),
-        User.countDocuments({ userType: 'student' }),
-        User.countDocuments({ userType: 'faculty' }),
+        User.countDocuments({ approvalStatus: { $ne: 'rejected' } }),
+        User.countDocuments({ userType: 'student', approvalStatus: 'approved' }),
+        User.countDocuments({ userType: 'faculty', approvalStatus: { $ne: 'rejected' } }),
         Lab.countDocuments(),
         Booking.countDocuments({ bookingDate: todayStr }),
         Booking.countDocuments({
@@ -150,7 +150,9 @@ exports.getAnalytics = async (req, res, next) => {
 exports.getUsers = async (req, res, next) => {
   try {
     const { role, department, status, search, page = 1, limit = 50 } = req.query;
-    const filter = {};
+    const filter = {
+      approvalStatus: { $ne: 'rejected' },
+    };
 
     if (role && role !== 'All') filter.userType = role;
     if (department && department !== 'All') filter.department = department;
@@ -167,6 +169,7 @@ exports.getUsers = async (req, res, next) => {
     const skip = (Number(page) - 1) * Number(limit);
     const users = await User.find(filter)
       .select('-password')
+      .populate('approvedBy', 'userName email department')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));

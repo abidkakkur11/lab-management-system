@@ -41,6 +41,7 @@ export const Sidebar = ({ isOpen, closeSidebar }) => {
     { label: 'Student Activity', to: '/faculty/students', icon: Users2 },
     { label: 'Special Requests', to: '/faculty/requests', icon: CheckSquare },
     { label: 'Usage Reports', to: '/faculty/reports', icon: BarChart3 },
+    { label: 'Notifications', to: '/faculty/notifications', icon: Bell },
     { label: 'Faculty Profile', to: '/faculty/profile', icon: User },
   ];
 

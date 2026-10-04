@@ -16,6 +16,8 @@ export const NotificationsPage = () => {
       const res = await notificationService.getMyNotifications();
       if (res.data?.success) {
         setNotifications(res.data.data);
+        const unread = (res.data.data || []).filter((n) => !n.isRead).length;
+        window.dispatchEvent(new CustomEvent('notifications_updated', { detail: { unreadCount: unread } }));
       }
     } catch (err) {
       console.error('Failed to load notifications:', err);
@@ -48,9 +50,12 @@ export const NotificationsPage = () => {
   const handleMarkRead = async (id) => {
     try {
       await notificationService.markAsRead(id);
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-      );
+      setNotifications((prev) => {
+        const next = prev.map((n) => (n._id === id ? { ...n, isRead: true } : n));
+        const unread = next.filter((n) => !n.isRead).length;
+        window.dispatchEvent(new CustomEvent('notifications_updated', { detail: { unreadCount: unread } }));
+        return next;
+      });
     } catch (err) {
       console.error(err);
     }
@@ -59,7 +64,11 @@ export const NotificationsPage = () => {
   const handleMarkAllRead = async () => {
     try {
       await notificationService.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications((prev) => {
+        const next = prev.map((n) => ({ ...n, isRead: true }));
+        window.dispatchEvent(new CustomEvent('notifications_updated', { detail: { unreadCount: 0 } }));
+        return next;
+      });
     } catch (err) {
       console.error(err);
     }
@@ -68,7 +77,12 @@ export const NotificationsPage = () => {
   const handleDelete = async (id) => {
     try {
       await notificationService.deleteNotification(id);
-      setNotifications((prev) => prev.filter((n) => n._id !== id));
+      setNotifications((prev) => {
+        const next = prev.filter((n) => n._id !== id);
+        const unread = next.filter((n) => !n.isRead).length;
+        window.dispatchEvent(new CustomEvent('notifications_updated', { detail: { unreadCount: unread } }));
+        return next;
+      });
     } catch (err) {
       console.error(err);
     }

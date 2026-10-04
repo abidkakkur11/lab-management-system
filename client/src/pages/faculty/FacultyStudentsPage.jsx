@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, BookOpen, CheckCircle, Clock } from 'lucide-react';
+import { Users, Search, BookOpen, CheckCircle, Clock, Eye } from 'lucide-react';
 import { facultyService } from '../../services/api';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { StudentDetailsModal } from '../../components/common/StudentDetailsModal';
 
 export const FacultyStudentsPage = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('All');
+  const [selectedStudentToView, setSelectedStudentToView] = useState(null);
 
   const fetchStudents = async () => {
     try {
@@ -95,6 +97,7 @@ export const FacultyStudentsPage = () => {
                 <th>Total Bookings</th>
                 <th>Completed Sessions</th>
                 <th>Account Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -124,12 +127,29 @@ export const FacultyStudentsPage = () => {
                       {s.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStudentToView(s)}
+                      className="btn btn-secondary btn-sm"
+                      title="View full student credentials"
+                    >
+                      <Eye size={14} /> View Profile
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Student Details Modal */}
+      <StudentDetailsModal
+        isOpen={Boolean(selectedStudentToView)}
+        onClose={() => setSelectedStudentToView(null)}
+        student={selectedStudentToView}
+      />
     </div>
   );
 };

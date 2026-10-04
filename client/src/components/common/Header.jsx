@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, LogOut, User as UserIcon, Menu, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -9,6 +9,7 @@ export const Header = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchUnread = async () => {
@@ -26,7 +27,21 @@ export const Header = ({ toggleSidebar }) => {
     if (user) {
       fetchUnread();
     }
-  }, [user]);
+  }, [user, location.pathname]);
+
+  // Listen for local notifications update event
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      if (e.detail && typeof e.detail.unreadCount === 'number') {
+        setUnreadCount(e.detail.unreadCount);
+      } else {
+        fetchUnread();
+      }
+    };
+
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   // Listen for real-time notifications
   useEffect(() => {
@@ -57,8 +72,7 @@ export const Header = ({ toggleSidebar }) => {
   };
 
   const getNotificationsLink = () => {
-    if (user?.userType === 'student') return '/student/notifications';
-    if (user?.userType === 'admin') return '/admin/notifications';
+    if (user?.userType === 'faculty') return '/faculty/notifications';
     return '/student/notifications';
   };
 
