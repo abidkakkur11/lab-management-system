@@ -301,18 +301,25 @@ exports.getCalendarBookings = async (req, res, next) => {
       status: { $in: ['confirmed', 'completed', 'pending'] },
     };
 
-    if (start && end) {
-      filter.bookingDate = { $gte: start, $lte: end };
+    // PRIVACY ENFORCEMENT:
+    // Students can ONLY view their own scheduled sessions.
+    // They cannot view other students' session history or PII.
+    if (req.user.userType === 'student') {
+      filter.userId = req.user._id;
     }
 
     if (labId && labId !== 'all') {
       filter.labId = labId;
     }
 
-    // If student, can see all lab bookings with minimal info, or their own bookings
+    if (start && end) {
+      filter.bookingDate = { $gte: start, $lte: end };
+    }
+
     const bookings = await Booking.find(filter)
       .populate('userId', 'userName department email')
-      .populate('labId', 'labName labId location')
+      .populate('labId', 'labName labId location department')
+      .populate('facultyId', 'userName email')
       .sort({ bookingDate: 1, 'timeSlot.startTime': 1 });
 
     res.status(200).json({

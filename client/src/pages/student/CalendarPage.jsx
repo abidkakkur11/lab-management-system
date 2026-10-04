@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Building2, 
 import { bookingService } from '../../services/api';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Modal } from '../../components/common/Modal';
+import { formatBookingDate } from '../../utils/dateUtils';
 
 export const CalendarPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -76,9 +77,9 @@ export const CalendarPage = () => {
         }}
       >
         <div>
-          <h1 style={{ fontSize: '1.65rem', fontWeight: '800' }}>Lab Schedule Calendar</h1>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: '800' }}>My Lab Schedule Calendar</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Visual overview of scheduled college lab sessions and reservations.
+            Personal visual overview of your scheduled lab sessions, reserved workstations, and timeslots.
           </p>
         </div>
 
@@ -238,9 +239,9 @@ export const CalendarPage = () => {
                           textOverflow: 'ellipsis',
                           fontWeight: '500',
                         }}
-                        title={`${b.timeSlot.startTime} • ${b.labId?.labName} (${b.seatId})`}
+                        title={`${b.timeSlot?.startTime} - ${b.timeSlot?.endTime} • ${b.labId?.labName} (${b.seatNumber ? 'Seat ' + b.seatNumber : b.seatId})`}
                       >
-                        {b.timeSlot.startTime} {b.seatId}
+                        {b.timeSlot?.startTime} • {b.seatNumber ? `Seat ${b.seatNumber}` : b.seatId}
                       </div>
                     ))}
                     {dayBookings.length > 3 && (
@@ -260,7 +261,7 @@ export const CalendarPage = () => {
       <Modal
         isOpen={Boolean(selectedBooking)}
         onClose={() => setSelectedBooking(null)}
-        title="Scheduled Lab Session Details"
+        title={`My Session Details • ${selectedBooking?.bookingId}`}
       >
         {selectedBooking && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.875rem' }}>
@@ -275,13 +276,17 @@ export const CalendarPage = () => {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Terminal / Seat:</span>
-              <span style={{ fontWeight: '600' }}>{selectedBooking.seatId}</span>
+              <span style={{ color: 'var(--text-muted)' }}>Workstation / Terminal:</span>
+              <span style={{ fontWeight: '700', color: 'var(--primary)' }}>
+                Seat {selectedBooking.seatNumber ? selectedBooking.seatNumber : selectedBooking.seatId} (Terminal ID: {selectedBooking.seatId})
+              </span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Date & Slot:</span>
-              <span>{selectedBooking.bookingDate} ({selectedBooking.timeSlot?.startTime} - {selectedBooking.timeSlot?.endTime})</span>
+              <span style={{ fontWeight: '600' }}>
+                {formatBookingDate(selectedBooking.bookingDate)} ({selectedBooking.timeSlot?.startTime} - {selectedBooking.timeSlot?.endTime})
+              </span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -289,19 +294,37 @@ export const CalendarPage = () => {
               <span className={`badge badge-${selectedBooking.status}`}>{selectedBooking.status}</span>
             </div>
 
+            {selectedBooking.facultyId && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Verifying Faculty:</span>
+                <span style={{ fontWeight: '600' }}>
+                  Prof. {selectedBooking.facultyId?.userName || selectedBooking.facultyId?.fullName || 'Faculty Member'}
+                </span>
+              </div>
+            )}
+
             <div>
-              <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Purpose:</span>
+              <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Session Purpose:</span>
               <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '10px', borderRadius: '6px' }}>
                 {selectedBooking.purpose}
               </div>
             </div>
 
-            {selectedBooking.userId?.userName && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Booked By:</span>
-                <span>{selectedBooking.userId.userName} ({selectedBooking.userId.department})</span>
+            {selectedBooking.specialRequests && (
+              <div>
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Special Requests:</span>
+                <div style={{ backgroundColor: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', padding: '10px', borderRadius: '6px' }}>
+                  {selectedBooking.specialRequests}
+                </div>
               </div>
             )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Attendance Status:</span>
+              <span style={{ fontWeight: '600' }}>
+                {selectedBooking.checkInTime ? 'Checked In' : 'Not checked in yet'}
+              </span>
+            </div>
           </div>
         )}
       </Modal>
